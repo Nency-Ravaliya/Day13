@@ -1,23 +1,27 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'JDK 17' // Make sure this name matches what you configured
+        maven 'Maven-3.9.2' // Ensure this matches the name configured for Maven
+    }
+
     environment {
-        MAVEN_HOME = tool 'Maven-3.9.0' // Ensure this matches your Maven tool name
+        MAVEN_HOME = tool name: 'Maven-3.9.2', type: 'maven'
+        JAVA_HOME = tool name: 'JDK 17', type: 'jdk'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout code from GitHub repository
-                git url: 'https://github.com/Nency-Ravaliya/Day13.git', branch: 'main' // Update with your repo URL and branch
+                git url: 'https://github.com/Nency-Ravaliya/Day13.git', branch: 'main', credentialsId: 'gtk0'
             }
         }
 
         stage('Build') {
             steps {
-                // Build the project using Maven
                 script {
-                    withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin"]) {
+                    withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin", "PATH+JAVA=${JAVA_HOME}/bin"]) {
                         sh 'mvn clean package'
                     }
                 }
@@ -26,7 +30,6 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                // Archive the built artifacts
                 archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
             }
         }
