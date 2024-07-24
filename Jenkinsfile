@@ -1,31 +1,32 @@
 pipeline {
     agent any
 
+    environment {
+        MAVEN_HOME = tool 'Maven-3.9.0' // Ensure this matches your Maven tool name
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                // Fetch the code from the repository
-                checkout scm
+                // Checkout code from GitHub repository
+                git url: 'https://github.com/Nency-Ravaliya/Day13.git', branch: 'main' // Update with your repo URL and branch
             }
         }
 
         stage('Build') {
             steps {
-                // Use Maven to build the project
-                sh 'mvn clean install'
+                // Build the project using Maven
+                script {
+                    withEnv(["PATH+MAVEN=${MAVEN_HOME}/bin"]) {
+                        sh 'mvn clean package'
+                    }
+                }
             }
         }
 
-        stage('Test') {
+        stage('Archive Artifacts') {
             steps {
-                // Run tests using Maven
-                sh 'mvn test'
-            }
-        }
-        
-        stage('Archive') {
-            steps {
-                // Archive build artifacts, such as JAR files
+                // Archive the built artifacts
                 archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
             }
         }
@@ -33,24 +34,13 @@ pipeline {
 
     post {
         always {
-            // Clean up workspace if needed
-            cleanWs()
+            echo 'Pipeline finished.'
         }
-
         success {
-            echo 'Build and tests completed successfully.'
+            echo 'Pipeline succeeded.'
         }
-
-        unstable {
-            echo 'Build completed, but there were some test failures.'
-        }
-
         failure {
-            echo 'Build or tests failed.'
-        }
-
-        changed {
-            echo 'The build result has changed.'
+            echo 'Pipeline failed.'
         }
     }
 }
